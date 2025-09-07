@@ -17,6 +17,60 @@ const api = axios.create({
   timeout: 10000,
 });
 
+// 添加响应拦截器
+api.interceptors.response.use(
+  (response) => {
+    // 对于2xx状态码，直接返回响应
+    return response;
+  },
+  (error) => {
+    // 处理错误响应
+    if (error.response) {
+      // 服务器返回了错误状态码
+      const { status, data } = error.response;
+      
+      // 创建错误消息
+      let message = '请求失败';
+      if (data && data.error) {
+        message = data.error;
+      } else if (data && data.message) {
+        message = data.message;
+      } else {
+        switch (status) {
+          case 400:
+            message = '请求参数错误';
+            break;
+          case 401:
+            message = '未授权访问';
+            break;
+          case 403:
+            message = '禁止访问';
+            break;
+          case 404:
+            message = '请求的资源不存在';
+            break;
+          case 500:
+            message = '服务器内部错误';
+            break;
+          default:
+            message = `请求失败 (${status})`;
+        }
+      }
+      
+      // 创建一个新的错误对象，包含详细信息
+      const customError = new Error(message);
+      customError.name = `HTTP ${status}`;
+      return Promise.reject(customError);
+    } else if (error.request) {
+      // 请求已发出但没有收到响应
+      return Promise.reject(new Error('网络连接失败，请检查网络设置'));
+    } else {
+      // 其他错误
+      return Promise.reject(new Error('请求配置错误'));
+    }
+  }
+);
+
 export const blockchainApi = {
   getInfo: () => api.get<ApiResponse<BlockchainInfo>>('/blockchain/info'),
   
@@ -52,6 +106,9 @@ export const walletApi = {
     
   getBalance: (address: string) => 
     api.get<ApiResponse<{ address: string; balance: number }>>(`/wallets/${address}/balance`),
+    
+  deleteWallet: (address: string) => 
+    api.delete<ApiResponse<{ message: string }>>(`/wallets/${address}`),
 };
 
 export const tokenApi = {

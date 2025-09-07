@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet as WalletIcon, Plus, Copy } from 'lucide-react';
+import { Wallet as WalletIcon, Plus, Copy, Trash2 } from 'lucide-react';
 import Card from '../components/Card';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../services/api';
@@ -10,6 +10,7 @@ const Wallets: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWallets();
@@ -22,8 +23,11 @@ const Wallets: React.FC = () => {
       if (response.data.success && response.data.data) {
         setWallets(response.data.data.wallets);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch wallets:', error);
+      if (typeof window !== 'undefined' && (window as any).showToast) {
+        (window as any).showToast(`获取钱包列表失败: ${error.message}`, 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -35,20 +39,51 @@ const Wallets: React.FC = () => {
       const response = await api.wallet.createWallet();
       if (response.data.success) {
         await fetchWallets(); // Refresh the list
+        if (typeof window !== 'undefined' && (window as any).showToast) {
+          (window as any).showToast('钱包创建成功', 'success');
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create wallet:', error);
+      if (typeof window !== 'undefined' && (window as any).showToast) {
+        (window as any).showToast(`创建钱包失败: ${error.message}`, 'error');
+      }
     } finally {
       setCreating(false);
+    }
+  };
+
+  const deleteWallet = async (address: string) => {
+    try {
+      setDeleting(address);
+      const response = await api.wallet.deleteWallet(address);
+      if (response.data.success) {
+        await fetchWallets(); // Refresh the list
+        if (typeof window !== 'undefined' && (window as any).showToast) {
+          (window as any).showToast('钱包删除成功', 'success');
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to delete wallet:', error);
+      if (typeof window !== 'undefined' && (window as any).showToast) {
+        (window as any).showToast(`删除钱包失败: ${error.message}`, 'error');
+      }
+    } finally {
+      setDeleting(null);
     }
   };
 
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      // You could add a toast notification here
+      if (typeof window !== 'undefined' && (window as any).showToast) {
+        (window as any).showToast('地址已复制到剪贴板', 'success');
+      }
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
+      if (typeof window !== 'undefined' && (window as any).showToast) {
+        (window as any).showToast('复制地址失败', 'error');
+      }
     }
   };
 
@@ -122,6 +157,18 @@ const Wallets: React.FC = () => {
                       {formatAddress(wallet.address)}
                     </div>
                   </div>
+                  <button
+                    onClick={() => deleteWallet(wallet.address)}
+                    disabled={deleting === wallet.address}
+                    className="flex-shrink-0 p-2 text-gray-400 hover:text-red-500 disabled:opacity-50"
+                    title="删除钱包"
+                  >
+                    {deleting === wallet.address ? (
+                      <LoadingSpinner size="sm" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
                 </div>
 
                 <div className="space-y-3">

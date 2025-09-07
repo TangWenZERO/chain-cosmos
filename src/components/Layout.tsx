@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
+import Toast from "./Toast";
 import {
   Activity,
   Lock,
@@ -13,8 +14,39 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+interface ToastType {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+}
+
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [toasts, setToasts] = useState<ToastType[]>([]);
+
+  // 显示提示消息的函数
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    
+    // 3秒后自动移除提示
+    setTimeout(() => {
+      setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, 3000);
+  }, []);
+
+  // 移除指定提示的函数
+  const removeToast = useCallback((id: number) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
+  // 将showToast函数挂载到window对象上，供全局使用
+  React.useEffect(() => {
+    (window as any).showToast = showToast;
+    return () => {
+      delete (window as any).showToast;
+    };
+  }, [showToast]);
 
   const navigation = [
     { name: "仪表板", href: "/", icon: Activity },
@@ -61,7 +93,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">{children}</main>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {children}
+      </main>
+
+      {/* 全局提示组件 */}
+      {toasts.map(toast => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
     </div>
   );
 };

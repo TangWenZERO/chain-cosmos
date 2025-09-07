@@ -199,44 +199,83 @@ const balance = await api.wallet.getBalance(address);
 - ✅ 响应式设计
 - ✅ 中文本地化
 
-### 开发中功能
-- 🚧 交易详情页面
-- 🚧 挖矿状态监控
-- 🚧 代币操作界面
+### 待实现功能
+- ⏳ 交易详情页面
+- ⏳ 挖矿功能页面
+- ⏳ 代币详情页面
+- ⏳ 区块搜索功能
+- ⏳ 交易搜索功能
+- ⏳ 钱包详情页面
+- ⏳ 高级过滤和排序功能
 
-## 🔄 数据更新流程
+## 🛠️ 开发指南
 
-1. **初始化加载**
-   - 组件挂载时发起初始数据请求
-   - 显示加载动画直到数据返回
+### 添加新页面
+1. 在 `src/pages/` 目录下创建新页面组件
+2. 在 `src/App.tsx` 中添加路由配置
+3. 在 `src/components/Layout.tsx` 中添加导航项
 
-2. **实时更新**
-   - Dashboard 组件设置 10 秒定时器
-   - 自动刷新关键数据指标
+### 添加新API接口
+1. 在 `src/types/blockchain.ts` 中定义相关类型
+2. 在 `src/services/api.ts` 中添加对应的API调用函数
+3. 在需要的页面组件中使用新添加的API
 
-3. **用户交互**
-   - 用户操作（如创建钱包）后立即更新界面
-   - 分页加载提供流畅的浏览体验
+### 自定义样式
+1. 使用 Tailwind CSS 的实用类进行样式设计
+2. 在 `src/index.css` 中添加全局样式
+3. 如需添加新的主题颜色，可在 `tailwind.config.js` 中进行配置
 
-## 🛠️ 开发工具
+## 🧪 测试
 
-### 构建和开发
-- **Vite** - 快速的开发服务器和构建工具
-- **TypeScript** - 静态类型检查
-- **Tailwind CSS** - 实用优先的样式系统
+目前项目包含以下测试策略：
+- 使用 TypeScript 进行静态类型检查
+- 使用 ESLint 进行代码质量检查
+- 计划添加 Jest 进行单元测试
+- 计划添加 Cypress 进行端到端测试
 
-### 代码质量
-- 严格的 TypeScript 配置
-- 组件化架构
-- API 响应类型安全
+## 📦 部署
 
-## 📈 性能优化
+### 构建生产版本
+```bash
+pnpm build
+```
 
-- **代码分割** - Vite 自动进行代码分割
-- **懒加载** - 按需加载页面组件
-- **请求优化** - 合理的 API 调用频率
-- **缓存策略** - 适当的数据缓存机制
+构建后的文件将位于 `dist/` 目录中，可以部署到任何静态文件服务器上。
 
----
+### Docker 部署（推荐）
+```dockerfile
+FROM node:16-alpine as build
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm
+RUN pnpm install
+COPY . .
+RUN pnpm build
 
-**Chain Cosmos Frontend** - 现代化区块链浏览器前端应用 🚀
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request 来改进项目。请遵循以下步骤：
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🙏 致谢
+
+- [React](https://reactjs.org/) - 用于构建用户界面的 JavaScript 库
+- [TypeScript](https://www.typescriptlang.org/) - JavaScript 的超集，添加了静态类型
+- [Vite](https://vitejs.dev/) - 下一代前端工具链
+- [Tailwind CSS](https://tailwindcss.com/) - 实用优先的 CSS 框架
+- [Lucide Icons](https://lucide.dev/) - 开源图标库
