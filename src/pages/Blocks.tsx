@@ -34,14 +34,15 @@ const Blocks: React.FC = () => {
       const response = await api.blockchain.getBlocks(10, loadMore ? offset : 0);
       
       if (response.data.success && response.data.data) {
+        const blockData = response.data.data; // 创建一个中间变量确保类型安全
         if (loadMore) {
-          setBlocks(prev => [...prev, ...response.data.data.blocks]);
+          setBlocks(prev => [...prev, ...blockData.blocks]);
           setOffset(prev => prev + 10);
-          setHasMore(response.data.data.hasMore);
+          setHasMore(blockData.hasMore);
         } else {
-          setBlocks(response.data.data.blocks);
+          setBlocks(blockData.blocks);
           setOffset(10);
-          setHasMore(response.data.data.hasMore);
+          setHasMore(blockData.hasMore);
         }
       }
     } catch (error: any) {
@@ -160,7 +161,7 @@ const Blocks: React.FC = () => {
                       <div className="font-mono text-xs">{formatAddress(block.hash, 8)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatNumber(block.index)}
+                      {block.index !== undefined ? formatNumber(block.index) : "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {block.transactions?.length || 0}

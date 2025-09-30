@@ -17,6 +17,8 @@ export interface Block {
   hash: string;
   height?: number;
   confirmations?: number;
+  index?: number;
+  miner?: string;
 }
 
 export interface BlockchainInfo {
